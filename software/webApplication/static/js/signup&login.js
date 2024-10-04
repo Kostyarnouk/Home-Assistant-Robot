@@ -1,5 +1,6 @@
 const form = document.getElementById('form')
 const firstname_input = document.getElementById('firstname-input')
+const lastname_input = document.getElementById('last-name')
 const email_input = document.getElementById('email-input')
 const password_input = document.getElementById('password-input')
 const repeat_password_input = document.getElementById('repeat-password-input')
@@ -30,6 +31,10 @@ function getSignupFormErrors(firstname, email, password, repeatPassword){
   if(firstname === '' || firstname == null){
     errors.push('Firstname is required')
     firstname_input.parentElement.classList.add('incorrect')
+  }
+  if(lastname === '' || lastname == null){
+    errors.push('Last name is incorrect')
+    lastname_input.parentElement.classList.add('incorrect')
   }
   if(email === '' || email == null){
     errors.push('Email is required')
