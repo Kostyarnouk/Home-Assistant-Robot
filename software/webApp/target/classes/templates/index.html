@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Home Page</title>
+    <style>
+        body {
+            background: #00091B;
+            color: #fff;
+        }
+
+        @keyframes fadeIn {
+            from {top: 20%; opacity: 0;}
+            to {top: 100; opacity: 1;}
+
+        }
+
+        @-webkit-keyframes fadeIn {
+            from {top: 20%; opacity: 0;}
+            to {top: 100; opacity: 1;}
+
+        }
+
+        .wrapper {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            -webkit-transform: translate(-50%, -50%);
+            animation: fadeIn 1000ms ease;
+            -webkit-animation: fadeIn 1000ms ease;
+
+        }
+
+        h1 {
+            font-size: 50px;
+            font-family: 'Poppins', sans-serif;
+            padding : 0;
+            margin :0;
+            margin-bottom: 0;
+            line-height: 1;
+            font-weight: 700;
+        }
+
+        .dot {
+            color: #4FEBFE;
+        }
+
+        p {
+            text-align: center;
+            margin-right: 0;
+            margin-top: 15px;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            font-weight: bold;
+
+        }
+
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            transition: 0.1s;
+            transform: translate(-50%,-50%);
+            pointer-events: none;
+            mix-blend-mode: difference;
+        }
+
+        h1:hover ~ cursor {
+            transform:scale(6);
+        }
+
+        p:hover ~ .cursor {
+            transform: scale(6);
+        }
+    </style>
+
+</head>
+<body>
+    <div class="wrapper">
+    <h1>coming soon<span class="dot">.</span></h1>
+    <p>Our team are working hard to provide you with the home assistant robot website.</p>
+    </div>
+    <div class="cursor"></div>
+    <script>
+        const cursor = document.querySelector('.cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.pageX +'px';
+            cursor.style.top = e.pageY +'px';
+        } )
+    </script>
+</body>
+</html>
