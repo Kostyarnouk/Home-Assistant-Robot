@@ -60,22 +60,25 @@ void controlMotor(int motorIndex, int speed, int dir) {
   analogWrite(motorENA[motorIndex], speed);           // Set speed
 }
 
-void stopMotors() {
-  for (int i = 0; i < 4; i++) 
+void stopMotors(int time) {
+  for (int i = 0; i < 4; i++)
     controlMotor(i, 0, 0);
+  delay(time);
 }
 
-void moveMotors(int speed, int dir1, int dir2, int dir3, int dir4) {
+void moveMotors(int speed, int dir1, int dir2, int dir3, int dir4, int timeLength) {
   controlMotor(0, speed, dir1);       // Back Right
   controlMotor(1, speed, dir2);       // Back Left
   controlMotor(2, speed + 5, dir3);   // Front Right (adjusted for resistance)
   controlMotor(3, speed, dir4);       // Front Left
+  delay(timeLength); //smooth adjustment bewteen actions
 }
-
-void moveForward(int speed)   { moveMotors(speed, 1, 1, 1, 1); }
-void moveBackward(int speed)  { moveMotors(speed, -1, -1, -1, -1); }
-void moveLeft(int speed)      { moveMotors(speed, -1, 1, 1, -1); }
-void moveRight(int speed)     { moveMotors(speed, 1, -1, -1, 1); }
+//FL FR BL BR
+void moveForward(int speed,int time)   { moveMotors(speed, 1, 1, 1, 1, time); }
+void moveBackward(int speed,int time)  { moveMotors(speed, -1, -1, -1, -1, time); }
+void moveLeft(int speed,int time)      { moveMotors(speed, -1, 1, 1, -1, time); }
+void moveRight(int speed,int time)     { moveMotors(speed, 1, -1, -1, 1, time); }
+void move180(int speed,int time)       { moveMotors(speed, 1, 1, -1, -1, time); }
 
 // Navigation Logic
 void navigate() {
@@ -83,63 +86,50 @@ void navigate() {
   
   if (distances[0] < 30 || distances[1] < 30) {  // Front sensors (FL, FR)
     Serial.println("Obstacle ahead! Moving backward.");
-    moveBackward(100);
-    delay(500);
-    stopMotors();
-    delay(500);
+    moveBackward(100,500);
+    stopMotors(300);
 
     // Turn left or right to avoid obstacle
     if (distances[2] > distances[3]) { // More space on the left
       Serial.println("Turning left to avoid obstacle.");
-      moveLeft(100);
-      delay(500);
+      moveLeft(100,500);
     } else { // More space on the right
       Serial.println("Turning right to avoid obstacle.");
-      moveRight(100);
-      delay(500);
+      moveRight(100,500);
     }
-    stopMotors();
-    delay(500);
-
+    stopMotors(300);
     stuckCounter++; // Increment stuck counter
   } 
   else if (distances[2] < 30) {                // Side Left (SL)
     Serial.println("Obstacle on left! Turning right.");
-    moveRight(100);
-    delay(500);
-    stopMotors();
-    delay(500);
+    moveRight(100,500);
+    
+    stopMotors(300);
     stuckCounter = 0; // Reset stuck counter
   } 
   else if (distances[3] < 30) {                // Side Right (SR)
     Serial.println("Obstacle on right! Turning left.");
-    moveLeft(100);
-    delay(500);
-    stopMotors();
-    delay(500);
-    stuckCounter = 0; // Reset stuck counter
+    moveLeft(100,500);
+    stopMotors(300);
+    stuckCounter = 0; 
   } 
   else if (distances[4] < 30 || distances[5] < 30) {  // Back sensors (BL, BR)
     Serial.println("Obstacle behind! Moving forward.");
-    moveForward(100);
-    delay(500);
-    stopMotors();
-    delay(500);
-    stuckCounter = 0; // Reset stuck counter
+    moveForward(100,500);
+    stopMotors(300);
+    stuckCounter = 0; 
   } 
   else {
     Serial.println("Path is clear. Moving forward.");
-    moveForward(100);
-    stuckCounter = 0; // Reset stuck counter
+    moveForward(100,400);
+    stuckCounter = 0; 
   }
 
   // If the robot is stuck (repeated obstacle detection), make a full turn
   if (stuckCounter >= 3) {
     Serial.println("Robot appears to be stuck. Performing a full turn.");
-    moveRight(100); // Perform a 360-degree turn or partial turn
-    delay(1000);    // Adjust delay for desired turn angle
-    stopMotors();
-    delay(500);
+    move180(150,50); // Perform a 180-degree turn 
+    stopMotors(300);
     stuckCounter = 0; // Reset stuck counter after turning
   }
 }
