@@ -74,74 +74,132 @@ void moveMotors(int speed, int dir1, int dir2, int dir3, int dir4, int timeLengt
   delay(timeLength); //smooth adjustment bewteen actions
 }
 //FL FR BL BR
-void moveForward(int speed,int time)   { moveMotors(speed, 1, 1, 1, 1, time); }
-void moveBackward(int speed,int time)  { moveMotors(speed, -1, -1, -1, -1, time); }
+void moveForward(int speed,int time)   { moveMotors(speed, -1, -1, -1, -1, time); }
+void moveBackward(int speed,int time)  { moveMotors(speed, 1, 1, 1, 1, time); }
 void moveLeft(int speed,int time)      { moveMotors(speed, -1, 1, 1, -1, time); }
 void moveRight(int speed,int time)     { moveMotors(speed, 1, -1, -1, 1, time); }
 void move180(int speed,int time)       { moveMotors(speed, 1, 1, -1, -1, time); }
 
 // Navigation Logic
+//Distances[FL,FR,SL,SR,BL,BR]
 void navigate() {
   static int stuckCounter = 0; // Counter to track if the robot is stuck
-  
-  if (distances[0] < 30 || distances[1] < 30) {  // Front sensors (FL, FR)
+  if (distances[0] < 40 || distances[1] < 40) {  // Front sensors (FL, FR)
     Serial.println("Obstacle ahead! Moving backward.");
-    moveBackward(100,500);
-    stopMotors(300);
+    moveBackward(100,100);
 
     // Turn left or right to avoid obstacle
     if (distances[2] > distances[3]) { // More space on the left
       Serial.println("Turning left to avoid obstacle.");
-      moveLeft(100,500);
+      moveLeft(200,100);
     } else { // More space on the right
       Serial.println("Turning right to avoid obstacle.");
-      moveRight(100,500);
+      moveRight(200,100);
     }
-    stopMotors(300);
     stuckCounter++; // Increment stuck counter
   } 
-  else if (distances[2] < 30) {                // Side Left (SL)
+  else if (distances[2] < 20) {                // Side Left (SL)
     Serial.println("Obstacle on left! Turning right.");
-    moveRight(100,500);
-    
-    stopMotors(300);
+    moveRight(100,100);
     stuckCounter = 0; // Reset stuck counter
   } 
-  else if (distances[3] < 30) {                // Side Right (SR)
+  else if (distances[3] < 20) {                // Side Right (SR)
     Serial.println("Obstacle on right! Turning left.");
-    moveLeft(100,500);
-    stopMotors(300);
+    moveLeft(100,100);
     stuckCounter = 0; 
   } 
-  else if (distances[4] < 30 || distances[5] < 30) {  // Back sensors (BL, BR)
+  else if (distances[4] < 40 || distances[5] < 40) {  // Back sensors (BL, BR)
     Serial.println("Obstacle behind! Moving forward.");
-    moveForward(100,500);
-    stopMotors(300);
+    //stopMotors(100);
+    moveForward(100,100);
+    //stopMotors(300);
     stuckCounter = 0; 
   } 
   else {
     Serial.println("Path is clear. Moving forward.");
-    moveForward(100,400);
+    moveForward(100,100);
     stuckCounter = 0; 
   }
-
   // If the robot is stuck (repeated obstacle detection), make a full turn
   if (stuckCounter >= 3) {
     Serial.println("Robot appears to be stuck. Performing a full turn.");
-    move180(150,50); // Perform a 180-degree turn 
-    stopMotors(300);
+    move180(240,200); // Perform a 180-degree turn 
+    stopMotors(500);
     stuckCounter = 0; // Reset stuck counter after turning
   }
 }
+void navigateTest() {
+  static int stuckCounter = 0;        // Counter to track stuck state
+
+  // Read sensor data
+  int frontLeft = distances[0];
+  int frontRight = distances[1];
+  int sideLeft = distances[2];
+  int sideRight = distances[3];
+  int backLeft = distances[4];
+  int backRight = distances[5];
+
+  // Define thresholds for obstacles
+  bool frontObstacle = (frontLeft < 30 || frontRight < 30);
+  bool backObstacle = (backLeft < 30 || backRight < 30);
+  bool leftObstacle = (sideLeft < 30);
+  bool rightObstacle = (sideRight < 30);
+
+  // Navigation logic
+  if (frontObstacle) {
+    Serial.println("Obstacle ahead! Moving backward.");
+    moveBackward(100, 200); // Move backward briefly
+    stuckCounter++;
+  } 
+  else if (backObstacle) {
+    Serial.println("Obstacle behind! Moving forward.");
+    moveForward(100, 200); // Move forward briefly
+    stuckCounter++;
+  } 
+  else if (leftObstacle && sideRight > sideLeft) {
+    Serial.println("Obstacle on left! Turning right.");
+    moveRight(100, 300); // Turn right
+    stuckCounter = 0;
+  } 
+  else if (rightObstacle && sideLeft > sideRight) {
+    Serial.println("Obstacle on right! Turning left.");
+    moveLeft(100, 300); // Turn left
+    stuckCounter = 0;
+  } 
+  else if (!frontObstacle && !backObstacle) {
+    Serial.println("Path is clear. Moving forward.");
+    moveForward(100, 300); // Keep moving forward
+    stuckCounter = 0;      // Reset stuck counter
+  }
+
+  // Handle stuck state (repeated obstacle detection)
+  if (stuckCounter >= 3) {  // If stuck for 3 cycles
+    Serial.println("Robot appears to be stuck. Performing a 180-degree turn.");
+    move180(200,800);      // Perform a 180-degree turn for 900ms
+    stopMotors(1000);      
+    stuckCounter = 0;       // Reset stuck counter after turning
+  }
+}
+
+
 
 void loop() {
-  // Check if new data has been received
+ 
   if (dataReceived) {
     dataReceived = false; // Reset flag
-    navigate();  // Call navigation logic
+    // Debug
+    // Serial.print("Distances: ");
+    // for (int i = 0; i < 6; i++) {
+    //   Serial.print(distances[i]);
+    //   if (i < 5) Serial.print(", ");
+    //   if (i == 5) Serial.print(" ");
+    // }
+    // Serial.println();
+    //navigate();  // Call navigation logic
+    navigateTest();
   } else {
     // If no data, indicate waiting
     Serial.println("Waiting for data...");
-    delay(100);
+
   }
 }
